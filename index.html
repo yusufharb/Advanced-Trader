@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        // Intercept Vite HMR WebSocket to completely prevent "WebSocket closed without opened" errors
+        const OrigWebSocket = window.WebSocket;
+        if (typeof OrigWebSocket !== 'undefined') {
+          const isViteSocket = function(url, protocols) {
+            const u = String(url || '');
+            const p = String(protocols || '');
+            return p.includes('vite-hmr') || u.includes('token=') || u.includes('/@vite');
+          };
+
+          function FakeViteWebSocket(url, protocols) {
+            if (!isViteSocket(url, protocols)) {
+              return new OrigWebSocket(url, protocols);
+            }
+            const target = new EventTarget();
+            target.url = url;
+            target.protocol = 'vite-hmr';
+            target.readyState = 1; // WebSocket.OPEN
+            target.CONNECTING = 0;
+            target.OPEN = 1;
+            target.CLOSING = 2;
+            target.CLOSED = 3;
+            target.send = function() {};
+            target.close = function() {
+              target.readyState = 3;
+              try {
+                target.dispatchEvent(new Event('close'));
+              } catch (_) {}
+            };
+            setTimeout(function() {
+              try {
+                target.dispatchEvent(new Event('open'));
+              } catch (_) {}
+            }, 0);
+            return target;
+          }
+
+          FakeViteWebSocket.CONNECTING = 0;
+          FakeViteWebSocket.OPEN = 1;
+          FakeViteWebSocket.CLOSING = 2;
+          FakeViteWebSocket.CLOSED = 3;
+          FakeViteWebSocket.prototype = OrigWebSocket.prototype;
+          window.WebSocket = FakeViteWebSocket;
+        }
+
+        const isViteOrWs = function(...args) {
+          return args.some(function(arg) {
+            if (!arg) return false;
+            const s = (typeof arg === 'string') ? arg : ((arg.message || '') + ' ' + (arg.stack || '') + ' ' + String(arg));
+            return s.includes('WebSocket') || s.includes('WebSocket closed') || s.includes('[vite]') || s.includes('vite-hmr');
+          });
+        };
+
+        const origConsoleError = console.error;
+        console.error = function(...args) {
+          if (isViteOrWs(...args)) return;
+          origConsoleError.apply(console, args);
+        };
+
+        const origConsoleWarn = console.warn;
+        console.warn = function(...args) {
+          if (isViteOrWs(...args)) return;
+          origConsoleWarn.apply(console, args);
+        };
+
+        window.addEventListener('error', function(event) {
+          const msg = (event && (event.message || (event.error && (event.error.message || event.error.stack)))) || '';
+          if (isViteOrWs(msg)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          const reason = event && event.reason;
+          const msg = (reason && (reason.message || reason.stack)) || String(reason || '');
+          if (isViteOrWs(msg)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+    <title>المحلل الفني المتقدم – Advanced Market Analyst</title>
+    <meta name="description" content="منصة ويب متكاملة لتحليل الذهب (XAUUSD) والبيتكوين (BTCUSDT) بدعم مدارس التحليل الفني ومحرك كمي دقيق وتوليد تقارير بالذكاء الاصطناعي." />
+    <meta property="og:title" content="المحلل الفني المتقدم – Advanced Market Analyst" />
+    <meta property="og:description" content="منصة ويب متكاملة لتحليل الذهب (XAUUSD) والبيتكوين (BTCUSDT) بدعم مدارس التحليل الفني ومحرك كمي دقيق وتوليد تقارير بالذكاء الاصطناعي." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0B0F19" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="المحلل الفني" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#0B0F19] text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

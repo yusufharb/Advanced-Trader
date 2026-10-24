@@ -1,0 +1,6 @@
+{
+  "name": "المحلل الفني المتقدم – Advanced Market Analyst",
+  "description": "منصة ويب متكاملة لتحليل الذهب (XAUUSD) والبيتكوين (BTCUSDT) بدعم مدارس التحليل الفني ومحرك كمي دقيق وتوليد تقارير بالذكاء الاصطناعي.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
